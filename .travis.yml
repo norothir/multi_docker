@@ -1,0 +1,21 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t norothir/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run norothir/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t norothir/multi-client ./client
+  - docker build -t norothir/multi-nginx ./nginx 
+  - docker build -t norothir/multi-server ./server
+  - docker build -t norothir/multi-worker ./worker  
+  # Login docker hub cli
+  echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  docker push norothir/multi-client 
+  docker push norothir/multi-nginx 
+  docker push norothir/multi-server
+  docker push norothir/multi-worker
